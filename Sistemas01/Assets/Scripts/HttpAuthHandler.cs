@@ -8,15 +8,16 @@ using System.Linq;
 
 public class HttpAuthHandler : MonoBehaviour
 {
-    [SerializeField]
-    private string ServerApiURL;
+    [SerializeField] private string ServerApiURL;
+    [SerializeField] List<GameObject> objectosLogin = new List<GameObject>();
+    [SerializeField] List<GameObject> objectosUsuario = new List<GameObject>();
 
     public string Token { get; set; }
     public string Username { get; set; }
 
     void Start() {
-        List<User> lista = new List<User>();
-        var listaOrdenada = lista.OrderByDescending(u => u.data.score).ToList<User>();
+        List<User> listaUsuarios = new List<User>();
+        var listaUsuariosOrdenada = listaUsuarios.OrderByDescending(u => u.data.score).ToList<User>();
 
         Token = PlayerPrefs.GetString("token");
         Username = PlayerPrefs.GetString("username");
@@ -30,7 +31,6 @@ public class HttpAuthHandler : MonoBehaviour
             StartCoroutine(GetPerfil());
         }
     }
-
     public void Registrar() {
         User user = new User();
         user.username = GameObject.Find("InputUsername").GetComponent<TMP_InputField>().text;
@@ -46,6 +46,7 @@ public class HttpAuthHandler : MonoBehaviour
         string postData = JsonUtility.ToJson(user);
         StartCoroutine(Login(postData));
     }
+    
     IEnumerator Registro(string postData) {
 
         UnityWebRequest www = UnityWebRequest.Put(ServerApiURL + "/api/usuarios",postData);
@@ -103,7 +104,7 @@ public class HttpAuthHandler : MonoBehaviour
         }
     }
     IEnumerator GetPerfil() {
-        UnityWebRequest www = UnityWebRequest.Get(ServerApiURL + "/api/usuarios/"+Username);
+        UnityWebRequest www = UnityWebRequest.Get(ServerApiURL + "/api/usuarios/" + Username);
         www.SetRequestHeader("x-token", Token);
 
         yield return www.SendWebRequest();
@@ -118,6 +119,78 @@ public class HttpAuthHandler : MonoBehaviour
 
                 Debug.Log(jsonData.usuario.username + " Sigue con la sesion inciada");
                 //Cambiar de escena
+                LoginScreen();
+            } else {
+                string mensaje = "Status :" + www.responseCode;
+                mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
+                mensaje += "\nError :" + www.error;
+                Debug.Log(mensaje);
+            }
+        }
+    }
+    public void LoginScreen() {
+        for (int i = 0; i < objectosLogin.Count; i++) {
+            objectosLogin[i].SetActive(false);
+        }
+        for (int i = 0; i < objectosUsuario.Count; i++) {
+            objectosUsuario[i].SetActive(true);
+        }
+        //StartCoroutine(NewScore());
+    }
+    public void Logout() {
+        Token = null;
+        Debug.Log("Funciono");
+        Debug.Log(Token);
+    }
+    public void ChangeScore() {
+        /*UnityWebRequest www = UnityWebRequest.Get(ServerApiURL + "/api/usuarios/" + Username);
+        www.SetRequestHeader("x-token", Token);
+
+        if (www.isNetworkError) {
+            Debug.Log("NETWORK ERROR :" + www.error);
+        } else {
+            Debug.Log(www.downloadHandler.text);
+
+            if (www.responseCode == 200) {
+                UserData userData = JsonUtility.FromJson<UserData>(www.downloadHandler.text);
+                Debug.Log("antes del cambio"+userData.score);
+                userData.score = GameObject.Find("InputScore").GetComponent<TMP_InputField>().text;
+                Debug.Log("despues del cambio" + userData.score);
+                if (userData.score == null) {
+                    userData.score = "0";
+                }
+                Debug.Log("la que quedo" + userData.score);
+            } else {
+                string mensaje = "Status :" + www.responseCode;
+                mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
+                mensaje += "\nError :" + www.error;
+                Debug.Log(mensaje);
+            }
+        }*/
+
+        /*UserData userData = new UserData();
+        userData.score = GameObject.Find("InputScore").GetComponent<TMP_InputField>().text;
+        */
+        StartCoroutine(NewScore());
+    }
+    IEnumerator NewScore() {
+        UnityWebRequest www = UnityWebRequest.Get(ServerApiURL + "/api/usuarios/" + Username);
+        www.SetRequestHeader("x-token", Token);
+
+        yield return www.SendWebRequest();
+
+        if (www.isNetworkError) {
+            Debug.Log("NETWORK ERROR :" + www.error);
+        } else {
+            Debug.Log(www.downloadHandler.text);
+
+            if (www.responseCode == 200) {
+                User.data = JsonUtility.FromJson<UserData>(www.downloadHandler.text);
+                User.data.score = GameObject.Find("InputScore").GetComponent<TMP_InputField>().text;
+                if (User.data.score == null) {
+                    User.data.score = "0";
+                }
+                Debug.Log(User.data.score);
             } else {
                 string mensaje = "Status :" + www.responseCode;
                 mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
@@ -129,8 +202,7 @@ public class HttpAuthHandler : MonoBehaviour
 }
 
 [System.Serializable]
-public class User
-{
+public class User {
     public string _id;
     public string username;
     public string password;
@@ -147,8 +219,7 @@ public class UserData {
     public string score;
 }
 
-public class AuthJsonData
-{
+public class AuthJsonData {
     public User usuario;
     public string token;
 }
