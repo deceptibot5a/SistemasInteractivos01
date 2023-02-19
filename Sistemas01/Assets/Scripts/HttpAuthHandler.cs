@@ -35,6 +35,7 @@ public class HttpAuthHandler : MonoBehaviour
         User user = new User();
         user.username = GameObject.Find("InputUsername").GetComponent<TMP_InputField>().text;
         user.password = GameObject.Find("InputPassword").GetComponent<TMP_InputField>().text;
+        //user.data.score = "0";
         string postData = JsonUtility.ToJson(user);
         StartCoroutine(Registro(postData));
     }
@@ -65,6 +66,7 @@ public class HttpAuthHandler : MonoBehaviour
 
                 Debug.Log(jsonData.usuario.username + " se regitro con id " + jsonData.usuario._id);
                 //Proceso de autenticacion
+                LoginScreen();
             } else {
                 string mensaje = "Status :" + www.responseCode;
                 mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
@@ -95,6 +97,7 @@ public class HttpAuthHandler : MonoBehaviour
 
                 PlayerPrefs.SetString("token", Token);
                 PlayerPrefs.SetString("username", Username);
+                LoginScreen();
             } else {
                 string mensaje = "Status :" + www.responseCode;
                 mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
@@ -135,42 +138,19 @@ public class HttpAuthHandler : MonoBehaviour
         for (int i = 0; i < objectosUsuario.Count; i++) {
             objectosUsuario[i].SetActive(true);
         }
-        //StartCoroutine(NewScore());
     }
     public void Logout() {
         Token = null;
         Debug.Log("Funciono");
         Debug.Log(Token);
+        for (int i = 0; i < objectosUsuario.Count; i++) {
+            objectosUsuario[i].SetActive(false);
+        }
+        for (int i = 0; i < objectosLogin.Count; i++) {
+            objectosLogin[i].SetActive(true);
+        }
     }
     public void ChangeScore() {
-        /*UnityWebRequest www = UnityWebRequest.Get(ServerApiURL + "/api/usuarios/" + Username);
-        www.SetRequestHeader("x-token", Token);
-
-        if (www.isNetworkError) {
-            Debug.Log("NETWORK ERROR :" + www.error);
-        } else {
-            Debug.Log(www.downloadHandler.text);
-
-            if (www.responseCode == 200) {
-                UserData userData = JsonUtility.FromJson<UserData>(www.downloadHandler.text);
-                Debug.Log("antes del cambio"+userData.score);
-                userData.score = GameObject.Find("InputScore").GetComponent<TMP_InputField>().text;
-                Debug.Log("despues del cambio" + userData.score);
-                if (userData.score == null) {
-                    userData.score = "0";
-                }
-                Debug.Log("la que quedo" + userData.score);
-            } else {
-                string mensaje = "Status :" + www.responseCode;
-                mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
-                mensaje += "\nError :" + www.error;
-                Debug.Log(mensaje);
-            }
-        }*/
-
-        /*UserData userData = new UserData();
-        userData.score = GameObject.Find("InputScore").GetComponent<TMP_InputField>().text;
-        */
         StartCoroutine(NewScore());
     }
     IEnumerator NewScore() {
@@ -185,12 +165,12 @@ public class HttpAuthHandler : MonoBehaviour
             Debug.Log(www.downloadHandler.text);
 
             if (www.responseCode == 200) {
-                User.data = JsonUtility.FromJson<UserData>(www.downloadHandler.text);
-                User.data.score = GameObject.Find("InputScore").GetComponent<TMP_InputField>().text;
-                if (User.data.score == null) {
-                    User.data.score = "0";
+                UserData myData = JsonUtility.FromJson<UserData>(www.downloadHandler.text);
+                myData.score = GameObject.Find("InputScore").GetComponent<TMP_InputField>().text;
+                if (myData.score == null) {
+                    myData.score = "0";
                 }
-                Debug.Log(User.data.score);
+                Debug.Log(myData.score);
             } else {
                 string mensaje = "Status :" + www.responseCode;
                 mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
@@ -210,9 +190,10 @@ public class User {
 
     public User() {
     }
-    public User(string username, string password) {
+    public User(string username, string password, string data) {
         this.username = username;
         this.password = password;
+        this.data.score = data;
     }
 }
 public class UserData {
