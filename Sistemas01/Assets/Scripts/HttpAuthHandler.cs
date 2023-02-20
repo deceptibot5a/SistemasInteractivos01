@@ -33,14 +33,7 @@ public class HttpAuthHandler : MonoBehaviour
             Debug.Log(Username);
             StartCoroutine(GetPerfil());
         }
-    }/*
-    void Update() {
-        //var listaUsuariosOrdenada = listaUsuarios.OrderByDescending(user => user.data.score).ToList<User>();
-        for (int i = 0; i < listaUsuarios.Count; i++) {
-            //listaPuntajes[i].text = 
-                //(i + 1) + " - " + listaUsuarios[i].username + " - " + listaUsuarios[i].data.score;
-        }
-    }*/
+    }
     public void Registrar() {
         User user = new User();
         user.username = GameObject.Find("InputUsername").GetComponent<TMP_InputField>().text;
@@ -148,9 +141,11 @@ public class HttpAuthHandler : MonoBehaviour
         }
         userText.text = "Welcome, " + Username;
         for (int i = 0; i < listaNombres.Count; i++) {
-            if (listaNombres[i].text == "Username") {
-                listaNombres[i].text = Username;
-                break;
+            if (listaNombres[i].text != Username) {
+                if (listaNombres[i].text == "Username") {
+                    listaNombres[i].text = Username;
+                    break;
+                }
             }
         }
     }
